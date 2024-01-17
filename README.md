@@ -3,6 +3,7 @@
 - Bu bash scripti, Hürriyet Bigpara'nın API'sini kullanarak Borsa İstanbul'da listelenen bir hissenin anlık verilerini çekmek için tasarlanmıştır.
 - Çekilen veriler arasında hisse sembolü, açıklama, açılış fiyatı, alış fiyatı, satış fiyatı, yüzdesel değişim ve son işlem tarihi bulunmaktadır.
 - API'den alınan veriler, jq aracı kullanılarak işlenir ve ekrana düzenli bir şekilde yazdırılır.
+- API'nin sağladığı veriler 15 dakika gecikmelidir!
 
 ### Gerekli Araçlar
 
