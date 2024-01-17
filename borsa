@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Argüman kontrolü
+if [ -z "$1" ]; then
+	echo "Lütfen hisse sembolünü giriniz! -> Kullanım: $0 <hisse_sembolu>"
+	exit 1
+elif ! [[ "$1" =~ ^[A-Za-z]+$ ]]; then
+    echo "Hatalı hisse sembolü formatı! Sadece harf kullanınız."
+    exit 1
+fi
+
+# İlk argümanı büyük harfe çevir
+arg1=$(echo "$1" | tr '[:lower:]' '[:upper:]')
+
+# API isteği için URL
+url="https://bigpara.hurriyet.com.tr/api/v1/borsa/hisseyuzeysel/$arg1"
+
+# HTTP Status Code Kontrolü
+http_status=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+if [ $http_status -ne 200 ]; then
+    echo "API isteğinde bir hata oluştu! Girdiğiniz hisse sembolünü kontrol ediniz! HTTP Durum Kodu: $http_status"
+    exit 1
+fi
+
+# cURL ile verileri çek
+response=$(curl -s "$url")
+
+# cURL isteği hata kontrolü
+if [ $? -ne 0 ]; then
+    echo "cURL isteğinde bir hata oluştu!"
+    exit 1
+fi
+
+# jq kullanarak gerekli verileri ayıkla
+symbol=$(jq -r '.data.hisseYuzeysel.sembol' <<< "$response")
+description=$(jq -r '.data.hisseYuzeysel.aciklama' <<< "$response")
+date=$(jq -r '.data.hisseYuzeysel.tarih[:-6]' <<< "$response")
+date_format=$(date -d "$date" +"%H:%M:%S %d-%m-%Y")
+opening=$(jq -r '.data.hisseYuzeysel.acilis' <<< "$response")
+buying=$(jq -r '.data.hisseYuzeysel.alis' <<< "$response")
+selling=$(jq -r '.data.hisseYuzeysel.satis' <<< "$response")
+percentage_change=$(jq -r '.data.hisseYuzeysel.yuzdedegisim' <<< "$response")
+formatted_percentage_change=$(printf "%.2f\n" "$percentage_change")
+
+# Veri Kontrolü
+if [ -z "$symbol" ] && [ -z "$description" ] && [ -z "$date" ] && [ -z "$opening" ] && [ -z "$buying" ] && [ -z "$selling" ] && [ -z "$percentage_change" ]; then
+    echo "API yanıtında eksik veya hatalı veriler var. Lütfen tekrar deneyin."
+    exit 1
+fi
+
+# Çekilen verileri düzenli bir şekilde yazdır
+printf "\n\n"
+printf "%-8s %-22s %-12s %-8s %-9s %-21s %s\n" "Sembol" "Açıklama" "Açılış" "Alış" "Satış" "Yüzdesel Değişim" "Son İşlem"
+echo "-----------------------------------------------------------------------------------"
+printf "%-8s %-20s %-8s %-6s %-7s %-18s %s\n" "$symbol" "$description" "$opening" "$buying" "$selling" "$formatted_percentage_change" "$date_format"
+printf "\n\n"
