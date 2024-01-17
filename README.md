@@ -5,6 +5,8 @@
 - API'den alınan veriler, jq aracı kullanılarak işlenir ve ekrana düzenli bir şekilde yazdırılır.
 - API'nin sağladığı veriler 15 dakika gecikmelidir!
 
+![](borsa_script.png)
+
 ### Gerekli Araçlar
 
 Bu scriptin doğru çalışabilmesi için aşağıdaki araçların yüklü olması gerekmektedir:
